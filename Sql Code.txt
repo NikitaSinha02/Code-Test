@@ -1,0 +1,46 @@
+Select redemptionDate, redemptionCount
+From tblRetailers rt join tblRedemptions rd 
+On rt.id=rd.retailerid
+Where rd.redemptionDate (between '2023-10-30' and '2023-11-05')
+And retailerName="ABC Store"
+Group by redemptionDate,
+
+Select A.redemptionDate,A.redemptionCount
+From tblRetailers rt join
+(Select rd2.retailerid,rd2.redemptionDate, rd.redemptionCount
+From tblRedemptions rd join
+(Select retailerid,redemptionDate, max(CreateDateTime) as RecentTime
+From tblRedemptions 
+Where redemptionDate (between '2023-10-30' and '2023-11-05')
+Group by  retailerid,redemptionDate) as rd2
+On rd.retailerid=rd2.retailerid
+And rd.CreateDateTime=rd2.RecentTime
+And rd.redemptionDate =rd2.redemptionDate )as A
+On rt.id=rd.retailerid
+Where retailerName="ABC Store"
+
+ 1. Which date had the least number of redemptions and what was the redemption count? :2023-11-05 3702
+2. Which date had the most number of redemptions and what was the redemption count? 2023-11-04 5224
+3. What was the createDateTime for each redemptionCount in questions 1 and 2? 
+134 300 2023-11-04 5224 2023-11-05 11:00:00 UTC
+146 300 2023-11-05 3702 2023-11-06 11:00:00 UTC 
+
+4. Is there another method you can use to pull back the most recent redemption count, by redemption date, for the date range 2023-10-30 to 2023-11-05, for retailer "ABC Store"? In words, describe how you would do this (no need to write a query, unless you’d like to). 
+Instead of creating subquery inside subquery we can use a CHE common table expression inside which we can put r innermost query which will pull out the most recent create datetime for each redemption date and then we can use the CTE for joining with the outer query where we are pulling out count redemption count and there there only we can do join for retailerName
+
+
+Select rd2.redemptionDate, rd.redemptionCount
+From  tblRetailers rt join tblRedemptions rd
+On rt.id=rd.retailerid
+ join 
+(Select retailerid,redemptionDate, max(CreateDateTime) as RecentTime
+From tblRedemptions 
+Where redemptionDate (between '2023-10-30' and '2023-11-05')
+Group by  retailerid,redemptionDate) as rd2
+
+On rd.retailerid=rd2.retailerid
+And rd.CreateDateTime=rd2.RecentTime
+And rd.redemptionDate =rd2.redemptionDate 
+Where retailerName="ABC Store"
+
+

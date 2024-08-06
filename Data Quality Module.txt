@@ -1,0 +1,29 @@
+# Data Quality
+
+# 1. Data in the phone field can be validated for correct phone numbers.
+import pandas as pd 
+
+df = pd.read_csv("/content/data_file_20210527182730.csv") 
+df['phone'] = df['phone'].apply(lambda x: x.strip())
+df['phone'] = df['phone'].apply(lambda x: x.lstrip('+'))
+print(df)
+#2. For those fields that should not be null, check for null values. Consider records with nulls in these fields to be bad records and therefore should be removed
+null_rows=df.loc[df['name'].isnull() | df['phone'].isnull() | df['location'].isnull()]
+not_null_rows=df.loc[df['name'].notnull() | df['phone'].notnull() | df['location'].notnull()]
+
+#other way could be
+not_null_mask= df.notnull().all(axis=1)
+not_null_rows=df[not_null_mask]
+print(not_null_rows)
+
+#3. Descriptive fields like address, reviews_list can be cleaned by removing special characters or junk characters, etc.
+df['address']=df['address'].apply(lambda x: ''.join(char for char in x if char.isalnum()or char.isspace()))
+df['reviews_list']=df['reviews_list'].apply(lambda x: ''.join(char for char in x if char.isalnum()or char.isspace()))
+
+# we can do the same with regex as well
+pattern=r'[^\w\s]'
+df['address']=df['address'].replace(pattern,'', regex=True)
+df['reviews_list']=df['reviews_list'].replace(pattern,'', regex=True)
+
+# or we can execute same with 
+df[['reviews_list','address']]=df[['reviews_list','address']].apply(lambda x: ''.join(char for char in x if char.isalnum()or char.isspace()))
